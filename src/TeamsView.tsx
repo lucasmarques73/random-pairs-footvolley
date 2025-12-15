@@ -79,12 +79,22 @@ export function TeamsView({
                         <span className="text-indigo-800 font-medium">2</span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {team.player2.name}
+                        <p
+                          className={`text-sm font-medium ${
+                            team.player2.id === "empty"
+                              ? "text-gray-400"
+                              : "text-gray-900"
+                          }`}
+                        >
+                          {team.player2.id === "empty"
+                            ? "VAGO"
+                            : team.player2.name}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          Nível: {team.player2.level}
-                        </p>
+                        {team.player2.id !== "empty" && (
+                          <p className="text-sm text-gray-500">
+                            Nível: {team.player2.level}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

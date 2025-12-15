@@ -114,22 +114,19 @@ function App() {
       alert("É necessário pelo menos 2 jogadores para formar duplas");
       return;
     }
-    // Ativa o estado de carregamento
     setIsGeneratingTeams(true);
-    // Adiciona um pequeno atraso para o efeito visual
     setTimeout(() => {
       // Cria uma cópia e embaralha os jogadores
       const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
       const newTeams: Team[] = [];
-
-      // Ordena por nível após o embaralho para garantir combinações diferentes
+      // Ordena por nível após o embaralho
       const sortedPlayers = [...shuffledPlayers].sort(
         (a, b) => a.level - b.level
       );
-
-      // Restante da lógica de formação de times (mantenha sua lógica existente)
+      // Se o número de jogadores for ímpar, remove o último jogador
       const hasOddPlayers = sortedPlayers.length % 2 !== 0;
       const lastPlayer = hasOddPlayers ? sortedPlayers.pop() : null;
+      // Forma as duplas com os níveis mais próximos
       while (sortedPlayers.length > 0) {
         const player1 = sortedPlayers.shift()!;
         const player2 = sortedPlayers.pop()!;
@@ -139,33 +136,18 @@ function App() {
           teamLevel: player1.level + player2.level,
         });
       }
+      // Se havia um número ímpar de jogadores, adiciona o último jogador sozinho
       if (lastPlayer) {
-        if (newTeams.length > 0) {
-          const bestTeamIndex = newTeams.reduce(
-            (bestIndex, team, index, array) => {
-              const currentDiff = Math.abs(team.teamLevel - lastPlayer.level);
-              const bestDiff = Math.abs(
-                array[bestIndex].teamLevel - lastPlayer.level
-              );
-              return currentDiff < bestDiff ? index : bestIndex;
-            },
-            0
-          );
-          const bestTeam = newTeams[bestTeamIndex];
-          bestTeam.player2 = lastPlayer;
-          bestTeam.teamLevel = bestTeam.player1.level + bestTeam.player2.level;
-        } else {
-          newTeams.push({
-            player1: lastPlayer,
-            player2: lastPlayer,
-            teamLevel: lastPlayer.level * 2,
-          });
-        }
+        newTeams.push({
+          player1: lastPlayer,
+          player2: { id: "empty", name: "VAGO", level: 0 }, // Jogador vazio
+          teamLevel: lastPlayer.level,
+        });
       }
       setTeams(newTeams);
       setShowTeams(true);
       setIsGeneratingTeams(false);
-    }, 800); // Tempo para a animação de carregamento
+    }, 800);
   };
 
   const handleNewDraw = () => {
@@ -191,8 +173,14 @@ function App() {
     >
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h1 className="text-2xl font-bold text-gray-800 whitespace-nowrap">
+          <h1 className="text-2xl font-bold text-gray-800">
             Lista de Jogadores
+            {players.length > 0 && (
+              <span className="ml-2 text-indigo-600">
+                ({players.length}{" "}
+                {players.length === 1 ? "jogador" : "jogadores"})
+              </span>
+            )}
           </h1>
           <div className="w-full sm:w-auto grid grid-cols-2 sm:flex sm:space-x-2 gap-2">
             <button
