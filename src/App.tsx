@@ -371,7 +371,7 @@ function App() {
                         max="10"
                         value={formData.level}
                         onChange={handleInputChange}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                        className="w-full cursor-pointer"
                       />
                     </div>
                   </div>
