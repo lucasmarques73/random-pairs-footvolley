@@ -358,17 +358,22 @@ function App() {
                     >
                       Nível do Jogador (1-10)
                     </label>
-                    <input
-                      type="number"
-                      id="level"
-                      name="level"
-                      min="1"
-                      max="10"
-                      value={formData.level}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                      required
-                    />
+                    <div className="mt-1">
+                      <div className="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>Nível: {formData.level}</span>
+                        <span>1-10</span>
+                      </div>
+                      <input
+                        type="range"
+                        id="level"
+                        name="level"
+                        min="1"
+                        max="10"
+                        value={formData.level}
+                        onChange={handleInputChange}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
                   </div>
 
                   <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
