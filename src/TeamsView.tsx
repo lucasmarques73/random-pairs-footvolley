@@ -1,10 +1,4 @@
-import type { Player } from "./App";
-
-interface Team {
-  player1: Player;
-  player2: Player;
-  teamLevel: number;
-}
+import { translateSide, type Team } from "./Domain";
 
 interface TeamsViewProps {
   teams: Team[];
@@ -72,6 +66,9 @@ export function TeamsView({
                         <p className="text-sm text-gray-500">
                           Nível: {team.player1.level}
                         </p>
+                        <p className="text-sm text-gray-500">
+                          Lado: {translateSide(team.player1.side)}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
@@ -81,18 +78,23 @@ export function TeamsView({
                       <div>
                         <p
                           className={`text-sm font-medium ${
-                            team.player2.id === "empty"
+                            team.player2 === null
                               ? "text-gray-400"
                               : "text-gray-900"
                           }`}
                         >
-                          {team.player2.id === "empty"
+                          {team.player2 === null
                             ? "VAGO"
                             : team.player2.name}
                         </p>
-                        {team.player2.id !== "empty" && (
+                        {team.player2 !== null && (
                           <p className="text-sm text-gray-500">
                             Nível: {team.player2.level}
+                          </p>
+                        )}
+                        {team.player2 !== null && (
+                          <p className="text-sm text-gray-500">
+                            Lado: {translateSide(team.player2.side)}
                           </p>
                         )}
                       </div>

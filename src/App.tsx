@@ -6,18 +6,7 @@ import {
   UsersIcon,
 } from "@heroicons/react/24/outline";
 import { TeamsView } from "./TeamsView";
-
-export interface Player {
-  id: string;
-  name: string;
-  level: number;
-}
-
-interface Team {
-  player1: Player;
-  player2: Player;
-  teamLevel: number;
-}
+import { createBalancedTeams, type Player, type Team, translateSide } from "./Domain";
 
 function App() {
   const [players, setPlayers] = useState<Player[]>(() => {
@@ -44,9 +33,12 @@ function App() {
   const [formData, setFormData] = useState<Omit<Player, "id">>({
     name: "",
     level: 1,
+    side: "both",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -77,7 +69,7 @@ function App() {
     }
 
     // Reset form and close modal
-    setFormData({ name: "", level: 1 });
+    setFormData({ name: "", level: 1, side: "both" });
     setEditingPlayer(null);
     setIsModalOpen(false);
   };
@@ -86,6 +78,7 @@ function App() {
     setFormData({
       name: player.name,
       level: player.level,
+      side: player.side,
     });
     setEditingPlayer(player);
     setIsModalOpen(true);
@@ -104,10 +97,12 @@ function App() {
   };
 
   const openNewPlayerModal = () => {
-    setFormData({ name: "", level: 1 });
+    setFormData({ name: "", level: 1, side: "both" });
     setEditingPlayer(null);
     setIsModalOpen(true);
   };
+
+
 
   const generateTeams = () => {
     if (players.length < 2) {
@@ -116,34 +111,9 @@ function App() {
     }
     setIsGeneratingTeams(true);
     setTimeout(() => {
-      // Cria uma cópia e embaralha os jogadores
-      const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
-      const newTeams: Team[] = [];
-      // Ordena por nível após o embaralho
-      const sortedPlayers = [...shuffledPlayers].sort(
-        (a, b) => a.level - b.level
-      );
-      // Se o número de jogadores for ímpar, remove o último jogador
-      const hasOddPlayers = sortedPlayers.length % 2 !== 0;
-      const lastPlayer = hasOddPlayers ? sortedPlayers.pop() : null;
-      // Forma as duplas com os níveis mais próximos
-      while (sortedPlayers.length > 0) {
-        const player1 = sortedPlayers.shift()!;
-        const player2 = sortedPlayers.pop()!;
-        newTeams.push({
-          player1,
-          player2,
-          teamLevel: player1.level + player2.level,
-        });
-      }
-      // Se havia um número ímpar de jogadores, adiciona o último jogador sozinho
-      if (lastPlayer) {
-        newTeams.push({
-          player1: lastPlayer,
-          player2: { id: "empty", name: "VAGO", level: 0 }, // Jogador vazio
-          teamLevel: lastPlayer.level,
-        });
-      }
+      
+      const newTeams = createBalancedTeams(players);
+     
       setTeams(newTeams);
       setShowTeams(true);
       setIsGeneratingTeams(false);
@@ -269,6 +239,9 @@ function App() {
                         <p className="text-sm text-gray-500">
                           Nível: {player.level}/10
                         </p>
+                        <p className="text-sm text-gray-500">
+                          Lado: {translateSide(player.side)}
+                        </p>
                       </div>
                       <div className="ml-4 flex-shrink-0 flex space-x-2">
                         <button
@@ -362,6 +335,34 @@ function App() {
                         className="w-full cursor-pointer"
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="side"
+                      className="block text-sm font-medium text-gray-700"
+                    >
+                      Lado Preferencial
+                    </label>
+                    <select
+                      id="side"
+                      name="side"
+                      value={formData.side}
+                      onChange={(e) => {
+                        const event = {
+                          target: {
+                            name: "side",
+                            value: e.target.value,
+                          },
+                        } as React.ChangeEvent<HTMLSelectElement>;
+                        handleInputChange(event);
+                      }}
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="both">Ambos</option>
+                      <option value="right">Direito</option>
+                      <option value="left">Esquerdo</option>
+                    </select>
                   </div>
 
                   <div className="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
