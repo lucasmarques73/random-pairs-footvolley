@@ -40,20 +40,29 @@ function calculateTeamLevel(team: RawTeam): number {
 
 function levelSpread(teams: RawTeam[]): number {
   const levels = teams
-    .filter(t => t.player2 !== null) // ignora time incompleto
+    .filter(t => t.player2 !== null)
     .map(calculateTeamLevel);
+
+  if (levels.length === 0) return 0;
 
   return Math.max(...levels) - Math.min(...levels);
 }
 
 export function createBalancedTeams(players: Player[]): Team[] {
+  // ---------- CONFIGURAÇÕES ----------
+  const MAX_SPREAD_FOR_SHUFFLE = 1;   // quão justo precisa estar para liberar aleatoriedade
+  const MAX_LEVEL_DELTA = 2;          // diferença máxima entre jogadores trocados
+  const SHUFFLE_ITERATIONS = 20;      // intensidade da variação
+  // ----------------------------------
+
+  // FASE 1 — ordena por nível
   const sorted = [...players].sort((a, b) => b.level - a.level);
   const teams: RawTeam[] = [];
 
   let i = 0;
   let j = sorted.length - 1;
 
-  // FASE 1 — high + low
+  // High + Low
   while (i < j) {
     teams.push({
       player1: sorted[i],
@@ -63,15 +72,15 @@ export function createBalancedTeams(players: Player[]): Team[] {
     j--;
   }
 
-  // Se sobrar 1 jogador (ímpar)
+  // Número ímpar → sobra um jogador
   if (i === j) {
     teams.push({
-      player1: sorted[j], // geralmente o mais fraco
+      player1: sorted[j],
       player2: null,
     });
   }
 
-  // FASE 2 — ajustes de lado (somente times completos)
+  // FASE 2 — correção de lados (regra dura)
   let improved = true;
 
   while (improved) {
@@ -81,7 +90,6 @@ export function createBalancedTeams(players: Player[]): Team[] {
     for (let a = 0; a < teams.length; a++) {
       const teamA = teams[a];
       if (!teamA.player2) continue;
-
       if (!isInvalidSide(teamA.player1, teamA.player2)) continue;
 
       for (let b = 0; b < teams.length; b++) {
@@ -90,14 +98,14 @@ export function createBalancedTeams(players: Player[]): Team[] {
         const teamB = teams[b];
         if (!teamB.player2) continue;
 
-        const swapCandidates: Array<[Player, Player]> = [
+        const swaps: Array<[Player, Player]> = [
           [teamA.player1, teamB.player1],
           [teamA.player1, teamB.player2],
           [teamA.player2, teamB.player1],
           [teamA.player2, teamB.player2],
         ];
 
-        for (const [x, y] of swapCandidates) {
+        for (const [x, y] of swaps) {
           const newTeamA: [Player, Player] = [
             x === teamA.player1 ? y : teamA.player1,
             x === teamA.player2 ? y : teamA.player2,
@@ -121,9 +129,7 @@ export function createBalancedTeams(players: Player[]): Team[] {
             return t;
           });
 
-          const newSpread = levelSpread(simulated);
-
-          if (newSpread <= currentSpread + 1) {
+          if (levelSpread(simulated) <= currentSpread + 1) {
             teamA.player1 = newTeamA[0];
             teamA.player2 = newTeamA[1];
             teamB.player1 = newTeamB[0];
@@ -140,7 +146,56 @@ export function createBalancedTeams(players: Player[]): Team[] {
     }
   }
 
-  // Finaliza
+  // FASE 3 — randomização controlada (se cenário permitir)
+  const spreadAfterBalance = levelSpread(teams);
+
+  if (spreadAfterBalance <= MAX_SPREAD_FOR_SHUFFLE) {
+    for (let i = 0; i < SHUFFLE_ITERATIONS; i++) {
+      const a = Math.floor(Math.random() * teams.length);
+      const b = Math.floor(Math.random() * teams.length);
+      if (a === b) continue;
+
+      const teamA = teams[a];
+      const teamB = teams[b];
+
+      if (!teamA.player2 || !teamB.player2) continue;
+
+      const swaps: Array<[Player, Player]> = [
+        [teamA.player1, teamB.player1],
+        [teamA.player1, teamB.player2],
+        [teamA.player2, teamB.player1],
+        [teamA.player2, teamB.player2],
+      ];
+
+      const [x, y] = swaps[Math.floor(Math.random() * swaps.length)];
+
+      if (Math.abs(x.level - y.level) > MAX_LEVEL_DELTA) continue;
+
+      const newTeamA: [Player, Player] = [
+        x === teamA.player1 ? y : teamA.player1,
+        x === teamA.player2 ? y : teamA.player2,
+      ];
+
+      const newTeamB: [Player, Player] = [
+        y === teamB.player1 ? x : teamB.player1,
+        y === teamB.player2 ? x : teamB.player2,
+      ];
+
+      if (
+        isInvalidSide(newTeamA[0], newTeamA[1]) ||
+        isInvalidSide(newTeamB[0], newTeamB[1])
+      ) {
+        continue;
+      }
+
+      teamA.player1 = newTeamA[0];
+      teamA.player2 = newTeamA[1];
+      teamB.player1 = newTeamB[0];
+      teamB.player2 = newTeamB[1];
+    }
+  }
+
+  // FINALIZA
   return teams.map(team => ({
     ...team,
     teamLevel: calculateTeamLevel(team),
