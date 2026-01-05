@@ -19,7 +19,7 @@ function Home() {
       <main className="flex-grow flex items-center justify-center">
         <div className="text-center space-y-6">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">
-            Bem-vindo ao App de Footvolley
+            Bem-vindo ao Gymora Championship
           </h1>
           <div className="space-x-4">
             <Link
