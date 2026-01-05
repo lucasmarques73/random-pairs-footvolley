@@ -114,8 +114,7 @@ export function GenerateTeams() {
     }
     setIsGeneratingTeams(true);
     setTimeout(() => {
-      const newTeams = createBalancedTeams(players);
-
+      const newTeams = createBalancedTeams(players, teams);
       setTeams(newTeams);
       setShowTeams(true);
       setIsGeneratingTeams(false);

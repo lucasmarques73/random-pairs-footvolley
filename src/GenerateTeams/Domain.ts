@@ -48,21 +48,58 @@ function levelSpread(teams: RawTeam[]): number {
   return Math.max(...levels) - Math.min(...levels);
 }
 
-export function createBalancedTeams(players: Player[]): Team[] {
-  // ---------- CONFIGURAÇÕES ----------
-  const MAX_SPREAD_FOR_SHUFFLE = 1; // quão justo precisa estar para liberar aleatoriedade
-  const MAX_LEVEL_DELTA = 2; // diferença máxima entre jogadores trocados
-  const SHUFFLE_ITERATIONS = 20; // intensidade da variação
-  // ----------------------------------
+export function createBalancedTeams(
+  players: Player[],
+  previousTeams?: Team[]
+): Team[] {
+  const MAX_LEVEL_DELTA = 2;
 
-  // FASE 1 — ordena por nível
-  const sorted = [...players].sort((a, b) => b.level - a.level);
+  let playersPool = [...players];
+  let forcedSolo: Player | null = null;
+
+  // 🔁 REGRA: alternar o jogador solo
+  if (previousTeams) {
+    const previousSolo = previousTeams.find((t) => t.player2 === null)?.player1;
+
+    if (previousSolo) {
+      const candidates = playersPool.filter((p) => p.id !== previousSolo.id);
+
+      // 1️⃣ pega candidatos com nível próximo
+      const nearLevel = candidates.filter(
+        (p) => Math.abs(p.level - previousSolo.level) <= 1
+      );
+
+      // 2️⃣ se houver mais de um, sorteia
+      if (nearLevel.length > 0) {
+        forcedSolo = nearLevel[Math.floor(Math.random() * nearLevel.length)];
+      } else {
+        // 3️⃣ fallback: pega os 3 mais próximos de nível e sorteia
+        candidates.sort(
+          (a, b) =>
+            Math.abs(a.level - previousSolo.level) -
+            Math.abs(b.level - previousSolo.level)
+        );
+
+        const topCandidates = candidates.slice(
+          0,
+          Math.min(3, candidates.length)
+        );
+        forcedSolo =
+          topCandidates[Math.floor(Math.random() * topCandidates.length)];
+      }
+
+      // remove o novo solo do pool
+      playersPool = playersPool.filter((p) => p.id !== forcedSolo!.id);
+    }
+  }
+
+  // FASE 1 — ordenação
+  const sorted = [...playersPool].sort((a, b) => b.level - a.level);
   const teams: RawTeam[] = [];
 
   let i = 0;
   let j = sorted.length - 1;
 
-  // High + Low
   while (i < j) {
     teams.push({
       player1: sorted[i],
@@ -72,20 +109,28 @@ export function createBalancedTeams(players: Player[]): Team[] {
     j--;
   }
 
-  // Número ímpar → sobra um jogador
+  // Se sobrar alguém (caso normal de ímpar)
   if (i === j) {
     teams.push({
-      player1: sorted[j],
+      player1: sorted[i],
       player2: null,
     });
   }
 
-  // FASE 2 — correção de lados (regra dura)
+  // Se o solo foi forçado, adiciona explicitamente
+  if (forcedSolo) {
+    teams.push({
+      player1: forcedSolo,
+      player2: null,
+    });
+  }
+
+  // FASE 2 — ajuste de lados
   let improved = true;
 
   while (improved) {
     improved = false;
-    const currentSpread = levelSpread(teams);
+    const spread = levelSpread(teams);
 
     for (let a = 0; a < teams.length; a++) {
       const teamA = teams[a];
@@ -106,6 +151,8 @@ export function createBalancedTeams(players: Player[]): Team[] {
         ];
 
         for (const [x, y] of swaps) {
+          if (Math.abs(x.level - y.level) > MAX_LEVEL_DELTA) continue;
+
           const newTeamA: [Player, Player] = [
             x === teamA.player1 ? y : teamA.player1,
             x === teamA.player2 ? y : teamA.player2,
@@ -119,9 +166,8 @@ export function createBalancedTeams(players: Player[]): Team[] {
           if (
             isInvalidSide(newTeamA[0], newTeamA[1]) ||
             isInvalidSide(newTeamB[0], newTeamB[1])
-          ) {
+          )
             continue;
-          }
 
           const simulated = teams.map((t, idx) => {
             if (idx === a)
@@ -131,7 +177,7 @@ export function createBalancedTeams(players: Player[]): Team[] {
             return t;
           });
 
-          if (levelSpread(simulated) <= currentSpread + 1) {
+          if (levelSpread(simulated) <= spread + 1) {
             teamA.player1 = newTeamA[0];
             teamA.player2 = newTeamA[1];
             teamB.player1 = newTeamB[0];
@@ -143,67 +189,12 @@ export function createBalancedTeams(players: Player[]): Team[] {
 
         if (improved) break;
       }
-
       if (improved) break;
     }
   }
 
-  // FASE 3 — randomização controlada (se cenário permitir)
-  const spreadAfterBalance = levelSpread(teams);
-
-  if (spreadAfterBalance <= MAX_SPREAD_FOR_SHUFFLE) {
-    for (let i = 0; i < SHUFFLE_ITERATIONS; i++) {
-      const a = Math.floor(Math.random() * teams.length);
-      const b = Math.floor(Math.random() * teams.length);
-      if (a === b) continue;
-
-      const teamA = teams[a];
-      const teamB = teams[b];
-
-      if (!teamA.player2 || !teamB.player2) continue;
-
-      const swaps: Array<[Player, Player]> = [
-        [teamA.player1, teamB.player1],
-        [teamA.player1, teamB.player2],
-        [teamA.player2, teamB.player1],
-        [teamA.player2, teamB.player2],
-      ];
-
-      const [x, y] = swaps[Math.floor(Math.random() * swaps.length)];
-
-      if (Math.abs(x.level - y.level) > MAX_LEVEL_DELTA) continue;
-
-      const newTeamA: [Player, Player] = [
-        x === teamA.player1 ? y : teamA.player1,
-        x === teamA.player2 ? y : teamA.player2,
-      ];
-
-      const newTeamB: [Player, Player] = [
-        y === teamB.player1 ? x : teamB.player1,
-        y === teamB.player2 ? x : teamB.player2,
-      ];
-
-      if (
-        isInvalidSide(newTeamA[0], newTeamA[1]) ||
-        isInvalidSide(newTeamB[0], newTeamB[1])
-      ) {
-        continue;
-      }
-
-      teamA.player1 = newTeamA[0];
-      teamA.player2 = newTeamA[1];
-      teamB.player1 = newTeamB[0];
-      teamB.player2 = newTeamB[1];
-    }
-  }
-
-  // FINALIZA
-  const finalTeams: Team[] = teams.map((t) => ({
-    player1: t.player1,
-    player2: t.player2,
-    teamLevel: calculateTeamLevel(t),
+  return teams.map((team) => ({
+    ...team,
+    teamLevel: calculateTeamLevel(team),
   }));
-
-  console.log(JSON.stringify(finalTeams));
-  return finalTeams;
 }
