@@ -29,7 +29,7 @@ function Home() {
               Criar Times
             </Link>
             <Link
-              to="/Campeonatos"
+              to="/championships"
               className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
             >
               Criar Campeonato
@@ -65,7 +65,7 @@ export function App() {
         <Route path="/" element={<Home />} />
         <Route path="/teams" element={<GenerateTeams />} />
         <Route
-          path="/Campeonatos"
+          path="/championships"
           element={<div className="p-8">Página de Campeonato (em breve)</div>}
         />
       </Routes>
