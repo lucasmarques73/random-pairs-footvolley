@@ -9,7 +9,7 @@ function Home() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="text-xl font-bold text-gray-900">
-                Gymora Championship
+                Gymora Campeonatos
               </Link>
             </div>
           </div>
@@ -19,7 +19,7 @@ function Home() {
       <main className="flex-grow flex items-center justify-center">
         <div className="text-center space-y-6">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">
-            Bem-vindo ao Gymora Championship
+            Bem-vindo ao Gymora Campeonatos
           </h1>
           <div className="space-x-4">
             <Link
@@ -29,7 +29,7 @@ function Home() {
               Criar Times
             </Link>
             <Link
-              to="/championship"
+              to="/Campeonatos"
               className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
             >
               Criar Campeonato
@@ -53,7 +53,7 @@ export function App() {
             <div className="flex justify-between h-16">
               <div className="flex items-center">
                 <Link to="/" className="text-xl font-bold text-gray-900">
-                  Gymora Championship
+                  Gymora Campeonatos
                 </Link>
               </div>
             </div>
@@ -65,7 +65,7 @@ export function App() {
         <Route path="/" element={<Home />} />
         <Route path="/teams" element={<GenerateTeams />} />
         <Route
-          path="/championship"
+          path="/Campeonatos"
           element={<div className="p-8">Página de Campeonato (em breve)</div>}
         />
       </Routes>
