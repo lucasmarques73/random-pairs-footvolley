@@ -29,8 +29,8 @@ type RawTeam = {
 
 function isInvalidSide(a: Player, b: Player): boolean {
   return (
-    (a.side === 'left' && b.side === 'left') ||
-    (a.side === 'right' && b.side === 'right')
+    (a.side === "left" && b.side === "left") ||
+    (a.side === "right" && b.side === "right")
   );
 }
 
@@ -40,7 +40,7 @@ function calculateTeamLevel(team: RawTeam): number {
 
 function levelSpread(teams: RawTeam[]): number {
   const levels = teams
-    .filter(t => t.player2 !== null)
+    .filter((t) => t.player2 !== null)
     .map(calculateTeamLevel);
 
   if (levels.length === 0) return 0;
@@ -50,9 +50,9 @@ function levelSpread(teams: RawTeam[]): number {
 
 export function createBalancedTeams(players: Player[]): Team[] {
   // ---------- CONFIGURAÇÕES ----------
-  const MAX_SPREAD_FOR_SHUFFLE = 1;   // quão justo precisa estar para liberar aleatoriedade
-  const MAX_LEVEL_DELTA = 2;          // diferença máxima entre jogadores trocados
-  const SHUFFLE_ITERATIONS = 20;      // intensidade da variação
+  const MAX_SPREAD_FOR_SHUFFLE = 1; // quão justo precisa estar para liberar aleatoriedade
+  const MAX_LEVEL_DELTA = 2; // diferença máxima entre jogadores trocados
+  const SHUFFLE_ITERATIONS = 20; // intensidade da variação
   // ----------------------------------
 
   // FASE 1 — ordena por nível
@@ -124,8 +124,10 @@ export function createBalancedTeams(players: Player[]): Team[] {
           }
 
           const simulated = teams.map((t, idx) => {
-            if (idx === a) return { player1: newTeamA[0], player2: newTeamA[1] };
-            if (idx === b) return { player1: newTeamB[0], player2: newTeamB[1] };
+            if (idx === a)
+              return { player1: newTeamA[0], player2: newTeamA[1] };
+            if (idx === b)
+              return { player1: newTeamB[0], player2: newTeamB[1] };
             return t;
           });
 
@@ -196,8 +198,12 @@ export function createBalancedTeams(players: Player[]): Team[] {
   }
 
   // FINALIZA
-  return teams.map(team => ({
-    ...team,
-    teamLevel: calculateTeamLevel(team),
+  const finalTeams: Team[] = teams.map((t) => ({
+    player1: t.player1,
+    player2: t.player2,
+    teamLevel: calculateTeamLevel(t),
   }));
+
+  console.log(JSON.stringify(finalTeams));
+  return finalTeams;
 }
