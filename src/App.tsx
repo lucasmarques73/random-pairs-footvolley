@@ -1,21 +1,11 @@
-import { Routes, Route, Link, useLocation } from "react-router-dom";
+import { Routes, Route, Link } from "react-router-dom";
 import { GenerateTeams } from "./GenerateTeams/GenerateTeams";
+import { GenerateChampionship } from "./GenerateChampionship/GenerateChampionship";
+import { Layout } from "./Layout";
 
 function Home() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <Link to="/" className="text-xl font-bold text-gray-900">
-                Gymora Campeonatos
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       <main className="flex-grow flex items-center justify-center">
         <div className="text-center space-y-6">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">
@@ -42,32 +32,14 @@ function Home() {
 }
 
 export function App() {
-  const location = useLocation();
-  const isHome = location.pathname === "/";
-
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
-      {!isHome && (
-        <nav className="bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center">
-                <Link to="/" className="text-xl font-bold text-gray-900">
-                  Gymora Campeonatos
-                </Link>
-              </div>
-            </div>
-          </div>
-        </nav>
-      )}
-
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/teams" element={<GenerateTeams />} />
-        <Route
-          path="/championships"
-          element={<div className="p-8">Página de Campeonato (em breve)</div>}
-        />
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/teams" element={<GenerateTeams />} />
+          <Route path="/championships" element={<GenerateChampionship />} />
+        </Route>
       </Routes>
     </div>
   );
