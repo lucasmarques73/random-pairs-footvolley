@@ -9,7 +9,7 @@ function Home() {
       <main className="flex-grow flex items-center justify-center">
         <div className="text-center space-y-6">
           <h1 className="text-4xl font-bold text-gray-900 mb-8">
-            Bem-vindo ao Gymora Campeonatos
+            Bem-vindo ao Sorteia Duplas
           </h1>
           <div className="space-x-4">
             <Link
@@ -17,12 +17,6 @@ function Home() {
               className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
             >
               Criar Times
-            </Link>
-            <Link
-              to="/championships"
-              className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors"
-            >
-              Criar Campeonato
             </Link>
           </div>
         </div>
