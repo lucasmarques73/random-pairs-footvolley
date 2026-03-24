@@ -15,11 +15,7 @@ export function TeamsView({
 }: TeamsViewProps) {
   function handleShareOnWhatsApp() {
     const text = formatTeamsForWhatsApp(teams);
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    const newWindow = window.open(url, "_blank", "noopener,noreferrer");
-    if (!newWindow) {
-      window.location.href = url;
-    }
+    window.location.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
   }
 
   return (
