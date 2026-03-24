@@ -48,6 +48,19 @@ function levelSpread(teams: RawTeam[]): number {
   return Math.max(...levels) - Math.min(...levels);
 }
 
+export function formatTeamsForWhatsApp(teams: Team[]): string {
+  return teams
+    .map((team, index) => {
+      const player1Part = `${translateSide(team.player1.side)} - ${team.player1.name}`;
+      const player2Part =
+        team.player2 !== null
+          ? `${translateSide(team.player2.side)} - ${team.player2.name}`
+          : "VAGO";
+      return `Time ${index + 1} - ${player1Part} e ${player2Part}`;
+    })
+    .join("\n");
+}
+
 export function createBalancedTeams(
   players: Player[],
   previousTeams?: Team[]
